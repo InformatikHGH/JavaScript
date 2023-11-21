@@ -1,8 +1,8 @@
 const gridSize = 20;
-const boardSize = 300;
 let snake = [{ x: 0, y: 0 }];
 let direction = 'right';
 let food = { x: 100, y: 100 }; // Initial food position
+let points = 0;
 
 function createBoard() {
   const gameBoard = document.getElementById('game-board');
@@ -21,6 +21,12 @@ function createBoard() {
   foodElement.style.left = `${food.x}px`;
   foodElement.style.top = `${food.y}px`;
   gameBoard.appendChild(foodElement);
+
+  // Display points during gameplay
+  const pointsElement = document.createElement('div');
+  pointsElement.className = 'points';
+  pointsElement.textContent = `Points: ${points}`;
+  gameBoard.appendChild(pointsElement);
 }
 
 function moveSnake() {
@@ -45,23 +51,32 @@ function moveSnake() {
 
   if (head.x === food.x && head.y === food.y) {
     generateFood();
+    points += 1; // Increment points on eating an apple
   } else {
     snake.pop();
   }
 }
 
 function generateFood() {
-  const x = Math.floor(Math.random() * (boardSize / gridSize)) * gridSize;
-  const y = Math.floor(Math.random() * (boardSize / gridSize)) * gridSize;
+  let x, y;
+
+  do {
+    x = Math.floor(Math.random() * 15) * gridSize;
+    y = Math.floor(Math.random() * 15) * gridSize;
+  } while (isFoodOnSnake(x, y));
 
   food = { x, y };
+}
+
+function isFoodOnSnake(x, y) {
+  return snake.some(segment => segment.x === x && segment.y === y);
 }
 
 function checkCollision() {
   const head = snake[0];
 
   // Check collision with walls
-  if (head.x < 0 || head.x >= boardSize || head.y < 0 || head.y >= boardSize) {
+  if (head.x < 0 || head.x >= 300 || head.y < 0 || head.y >= 300) {
     return true;
   }
 
@@ -80,8 +95,7 @@ function gameLoop() {
   createBoard();
 
   if (checkCollision()) {
-    alert('Game Over!');
-    resetGame();
+    gameOver();
   } else {
     setTimeout(gameLoop, 200);
   }
@@ -91,7 +105,13 @@ function resetGame() {
   snake = [{ x: 0, y: 0 }];
   direction = 'right';
   generateFood();
+  points = 0; // Reset points
   gameLoop();
+}
+
+function gameOver() {
+  alert(`Game Over! Points: ${points}`);
+  resetGame();
 }
 
 document.addEventListener('keydown', (event) => {
